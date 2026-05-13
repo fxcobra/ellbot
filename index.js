@@ -47,17 +47,24 @@ async function startBot() {
     sock.ev.on('creds.update', saveCreds);
     
     sock.ev.on('messages.upsert', async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg.message || msg.key.fromMe) return;
-        
-        const from = msg.key.remoteJid;
-        const text = msg.message?.conversation || 
-                     msg.message?.extendedTextMessage?.text || '';
-        
-        console.log(`${from}: ${text}`);
-        
-        if (text.toLowerCase() === 'hello') {
-            await sock.sendMessage(from, { text: 'Hi there!' });
+        try {
+            const msg = messages?.[0];
+            if (!msg?.message || msg.key.fromMe) return;
+
+            const from = msg.key.remoteJid;
+            const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
+
+            console.log(`${from}: ${text}`);
+
+            if (text.toLowerCase() === 'hello') {
+                try {
+                    await sock.sendMessage(from, { text: 'Hi there!' });
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        } catch (err) {
+            console.error(err);
         }
     });
     
