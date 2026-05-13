@@ -1,8 +1,9 @@
 import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestWaWebVersion } from '@whiskeysockets/baileys';
 import pino from 'pino';
-import { Boom } from '@hapi/boom';
+import qrcode from 'qrcode-terminal';
 
 const AUTH_FOLDER = './session';
+let keepAlive;
 
 async function startBot() {
     console.log('Starting WhatsApp Bot...');
@@ -14,15 +15,17 @@ async function startBot() {
         version,
         logger: pino({ level: 'silent' }),
         auth: state,
-        printQRInTerminal: true,
         browser: ['Inbound WhatsApp messages', 'Chrome', '1.0.0']
     });
+
+    keepAlive ??= setInterval(() => {}, 60_000);
     
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
         
         if (qr) {
             console.log('Scan this QR code with WhatsApp');
+            qrcode.generate(qr, { small: true });
         }
         
         if (connection === 'open') {
